@@ -258,7 +258,7 @@ public class RecordActivity extends ScaledActivity {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding(Ui.dp(this, 10), Ui.dp(this, 7), Ui.dp(this, 10), Ui.dp(this, 6));
-        card.setBackground(Ui.roundStroke(Ui.SURFACE, 14, Ui.BORDER_SOFT, 1, this));
+        card.setBackground(Ui.round(0xFF0F1518, 14, this));
 
         LinearLayout head = new LinearLayout(this);
         head.setOrientation(LinearLayout.HORIZONTAL);

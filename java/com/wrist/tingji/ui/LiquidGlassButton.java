@@ -7,7 +7,6 @@ import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.RadialGradient;
-import android.graphics.RectF;
 import android.graphics.Shader;
 import android.view.MotionEvent;
 import android.view.View;
@@ -123,58 +122,38 @@ public class LiquidGlassButton extends android.widget.FrameLayout {
         float r = Math.min(w, h) / 2f - Ui.dp(getContext(), 2f);
         if (r <= 0) return;
 
-        // soft outer bloom, only around the glass edge
-        paint.setShader(new RadialGradient(cx, cy, r * 1.08f,
-                new int[]{withAlpha(tint, 0), withAlpha(tint, strong ? 38 : 22),
-                        withAlpha(tint, 0)},
-                new float[]{0.72f, 0.94f, 1f}, Shader.TileMode.CLAMP));
-        paint.setMaskFilter(null);
-        canvas.drawCircle(cx, cy, r * 1.08f, paint);
-
-        // translucent body, brighter at upper-left
-        int top = lighten(tint, 62);
-        int bottom = darken(tint, 26);
+        // The glass body itself carries the effect: no outer halo, arc or dot.
+        int top = lighten(tint, strong ? 48 : 34);
+        int bottom = darken(tint, strong ? 18 : 12);
         paint.setShader(new LinearGradient(cx - r * 0.65f, cy - r * 0.75f,
                 cx + r * 0.55f, cy + r * 0.75f,
-                new int[]{withAlpha(top, 235), withAlpha(tint, 218),
-                        withAlpha(bottom, 238)},
+                new int[]{withAlpha(top, 225), withAlpha(tint, 205),
+                        withAlpha(bottom, 225)},
                 new float[]{0f, 0.52f, 1f}, Shader.TileMode.CLAMP));
         canvas.drawCircle(cx, cy, r, paint);
 
-        // refracted rim
+        // very low-contrast refracted rim
+        rimPaint.setStrokeWidth(Ui.dp(getContext(), 0.8f));
         rimPaint.setShader(new LinearGradient(cx - r, cy - r, cx + r, cy + r,
-                new int[]{withAlpha(Color.WHITE, 150), withAlpha(Color.WHITE, 26),
-                        withAlpha(Color.WHITE, 82)},
+                new int[]{withAlpha(Color.WHITE, 82), withAlpha(Color.WHITE, 8),
+                        withAlpha(Color.WHITE, 44)},
                 new float[]{0f, 0.52f, 1f}, Shader.TileMode.CLAMP));
-        canvas.drawCircle(cx, cy, r - Ui.dp(getContext(), 0.6f), rimPaint);
+        canvas.drawCircle(cx, cy, r - Ui.dp(getContext(), 0.4f), rimPaint);
 
-        // inner specular bloom
-        paint.setShader(new RadialGradient(cx - r * 0.34f, cy - r * 0.38f, r * 0.8f,
-                new int[]{withAlpha(Color.WHITE, strong ? 104 : 76),
-                        withAlpha(Color.WHITE, 10), withAlpha(Color.WHITE, 0)},
-                new float[]{0f, 0.48f, 1f}, Shader.TileMode.CLAMP));
+        // a single soft inner light, no separate specular dot
+        paint.setShader(new RadialGradient(cx - r * 0.38f, cy - r * 0.42f, r * 0.82f,
+                new int[]{withAlpha(Color.WHITE, strong ? 30 : 18),
+                        withAlpha(Color.WHITE, 4), withAlpha(Color.WHITE, 0)},
+                new float[]{0f, 0.52f, 1f}, Shader.TileMode.CLAMP));
         canvas.drawCircle(cx, cy, r, paint);
 
-        // top glass arc
-        paint.setShader(null);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(Ui.dp(getContext(), 1.5f));
-        paint.setColor(withAlpha(Color.WHITE, strong ? 118 : 84));
-        RectF arc = new RectF(cx - r * 0.76f, cy - r * 0.82f,
-                cx + r * 0.76f, cy + r * 0.45f);
-        canvas.drawArc(arc, 200f, 125f, false, paint);
-
-        // small specular dot
-        paint.setStyle(Paint.Style.FILL);
-        paint.setColor(withAlpha(Color.WHITE, strong ? 150 : 110));
-        canvas.drawCircle(cx - r * 0.38f, cy - r * 0.42f, Ui.dp(getContext(), 2.3f), paint);
-
-        // liquid feedback: a soft expanding ring on press
+        // only interactive feedback: a barely visible expanding ring
         if (ripple > 0f) {
+            paint.setShader(null);
             paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(Ui.dp(getContext(), 1.0f));
-            paint.setColor(withAlpha(Color.WHITE, (int) (62 * (1f - ripple))));
-            float rr = r * (0.82f + 0.28f * ripple);
+            paint.setStrokeWidth(Ui.dp(getContext(), 0.8f));
+            paint.setColor(withAlpha(Color.WHITE, (int) (34 * (1f - ripple))));
+            float rr = r * (0.86f + 0.20f * ripple);
             canvas.drawCircle(cx, cy, rr, paint);
         }
         paint.setStyle(Paint.Style.FILL);
