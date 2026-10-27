@@ -9,8 +9,8 @@ ANDROID_JAR="$ROOT/build/toolchain/android-28/android.jar"
 R8JAR="$ROOT/build/toolchain/r8.jar"
 KS="$ROOT/build/debug.keystore"
 OUT=build
-VERSION_CODE="${VERSION_CODE:-1}"
-VERSION_NAME="${VERSION_NAME:-1.0.0}"
+VERSION_CODE="${VERSION_CODE:-2}"
+VERSION_NAME="${VERSION_NAME:-1.0.1}"
 rm -rf "$OUT"
 mkdir -p "$OUT/gen" "$OUT/classes" "$OUT/dex" out
 "$AAPT2" compile --dir res -o "$OUT/res.zip"

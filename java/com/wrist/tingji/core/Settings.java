@@ -7,7 +7,7 @@ import android.text.TextUtils;
 /** All user preferences live here. Secrets are encrypted by {@link SecureStore}. */
 public class Settings {
     public static final String DEFAULT_DS_BASE = "https://api.deepseek.com";
-    public static final String DEFAULT_DS_MODEL = "deepseek-chat";
+    public static final String DEFAULT_DS_MODEL = "deepseek-flash";
     public static final String DEFAULT_ASR_ENDPOINT =
             "https://api.siliconflow.cn/v1/audio/transcriptions";
     public static final String DEFAULT_ASR_MODEL = "TeleAI/TeleSpeechASR";

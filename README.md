@@ -81,13 +81,13 @@
 APK：
 
 ```text
-out/TingJi-v1.0.0.apk
+out/TingJi-v1.0.1.apk
 ```
 
 安装：
 
 ```bash
-adb install -r out/TingJi-v1.0.0.apk
+adb install -r out/TingJi-v1.0.1.apk
 ```
 
 也可以把手表连电脑，用“安卓手表 ADB 实用工具箱”安装。
@@ -136,8 +136,10 @@ DeepSeek：
 
 ```text
 接口地址：https://api.deepseek.com
-对话模型：deepseek-chat
+对话模型：deepseek-flash
 ```
+
+`deepseek-flash` 是当前官方主模型（V4.1 Flash），默认开启思考模式。听记会在纠错/总结/JSON 提取时显式关闭 thinking，避免思考内容占满 `max_tokens` 导致正文为空。旧模型名 `deepseek-chat` 仍可作为兼容项手动填写，但不再是默认。
 
 硅基流动 ASR：
 
@@ -234,8 +236,8 @@ bash build.sh
 输出：
 
 ```text
-build/TingJi-v1.0.0.apk
-out/TingJi-v1.0.0.apk
+build/TingJi-v1.0.1.apk
+out/TingJi-v1.0.1.apk
 ```
 
 当前 APK 使用 debug keystore 签名，适合个人侧载；上架应用商店请换正式签名。

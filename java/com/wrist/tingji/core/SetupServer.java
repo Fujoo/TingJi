@@ -209,7 +209,7 @@ public class SetupServer {
                 "<label>接口地址</label>" +
                 "<input type=\"url\" name=\"ds_base\" value=\"" + esc(settings.getDeepSeekBase()) + "\" placeholder=\"https://api.deepseek.com\">" +
                 "<label>对话模型</label>" +
-                "<input type=\"text\" name=\"ds_model\" value=\"" + esc(settings.getModel()) + "\" placeholder=\"deepseek-chat\">" +
+                "<input type=\"text\" name=\"ds_model\" value=\"" + esc(settings.getModel()) + "\" placeholder=\"deepseek-flash\">" +
                 "<div class=\"hint\">纠错、摘要、要点、待办、分类都由这个接口完成。</div>" +
                 "<div class=\"sec\">语音转写</div>" +
                 "<label>语音识别 API Key</label>" +

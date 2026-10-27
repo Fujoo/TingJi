@@ -143,7 +143,7 @@ public class SettingsActivity extends ScaledActivity {
         card.addView(divider());
         card.addView(row("对话模型", settings.getModel(),
                 () -> Ui.input(this, "对话模型", settings.getModel(),
-                        "deepseek-chat", false, false, v -> {
+                        "deepseek-flash", false, false, v -> {
                             settings.setModel(v);
                             reload();
                         })));
@@ -286,7 +286,7 @@ public class SettingsActivity extends ScaledActivity {
     private View aboutCard() {
         LinearLayout card = card();
         card.setBackground(Ui.roundStroke(Ui.SURFACE, 14, Ui.BORDER_SOFT, 1, this));
-        TextView t = Ui.mediumText(this, "听记 1.0.0", 11.5f, Ui.TEXT);
+        TextView t = Ui.mediumText(this, "听记 1.0.1", 11.5f, Ui.TEXT);
         card.addView(t);
         TextView s = Ui.text(this, "32 位纯 Java · 无原生库 · 适配 Android 6+\n"
                 + "记录、密钥只保存在手表本地。\n"

@@ -31,6 +31,12 @@ public class AiClient {
         body.put("stream", false);
         body.put("temperature", 0.2);
         body.put("max_tokens", maxTokens);
+        // DeepSeek V4 enables thinking by default. For correction / summary /
+        // JSON extraction we need the final answer directly; otherwise the
+        // reasoning tokens can consume max_tokens and leave content empty.
+        JSONObject thinking = new JSONObject();
+        thinking.put("type", "disabled");
+        body.put("thinking", thinking);
         if (jsonMode) {
             JSONObject rf = new JSONObject();
             rf.put("type", "json_object");
@@ -52,11 +58,20 @@ public class AiClient {
         try {
             return request(s, body.toString(), key, 180000);
         } catch (ApiException e) {
-            // A few OpenAI-compatible gateways reject response_format. Retry
-            // once without it; the prompts still ask for strict JSON.
-            if (jsonMode && e.code == 400) {
-                body.remove("response_format");
-                return request(s, body.toString(), key, 180000);
+            // A few OpenAI-compatible gateways reject response_format or the
+            // DeepSeek-specific thinking field. Retry once without the
+            // optional field; the prompt still asks for strict JSON.
+            if (e.code == 400) {
+                boolean changed = false;
+                if (jsonMode) {
+                    body.remove("response_format");
+                    changed = true;
+                }
+                if (body.has("thinking")) {
+                    body.remove("thinking");
+                    changed = true;
+                }
+                if (changed) return request(s, body.toString(), key, 180000);
             }
             throw e;
         }
@@ -74,10 +89,24 @@ public class AiClient {
             JSONObject o = new JSONObject(raw);
             JSONArray choices = o.optJSONArray("choices");
             if (choices == null || choices.length() == 0) throw new Exception("AI 没有返回内容");
-            JSONObject msg = choices.optJSONObject(0).optJSONObject("message");
+            JSONObject choice = choices.optJSONObject(0);
+            JSONObject msg = choice == null ? null : choice.optJSONObject("message");
             if (msg == null) throw new Exception("AI 没有返回内容");
             String content = msg.isNull("content") ? "" : msg.optString("content", "");
-            if (TextUtils.isEmpty(content)) throw new Exception("AI 返回了空内容");
+            if (TextUtils.isEmpty(content)) {
+                String reasoning = msg.isNull("reasoning_content")
+                        ? "" : msg.optString("reasoning_content", "");
+                String finish = choice.optString("finish_reason", "");
+                if (!TextUtils.isEmpty(reasoning)) {
+                    throw new Exception("模型只返回了思考内容，正文为空。"
+                            + "已尝试关闭 thinking；请确认模型名是 deepseek-flash，"
+                            + "或把 max_tokens 调大后重试。");
+                }
+                if ("length".equals(finish)) {
+                    throw new Exception("AI 输出被 max_tokens 截断，正文为空，请重试");
+                }
+                throw new Exception("AI 返回了空内容（模型：" + s.getModel() + "）");
+            }
             return content.trim();
         } catch (ApiException e) {
             throw e;
