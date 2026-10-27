@@ -321,9 +321,9 @@ public class RecordActivity extends ScaledActivity {
         col.setOrientation(LinearLayout.VERTICAL);
         col.setGravity(Gravity.CENTER_HORIZONTAL);
 
-        FrameLayout circle = new FrameLayout(this);
-        circle.setBackground(Ui.rippleBg(Ui.gradient(lighten(circleColor, 8),
-                circleColor, sizeDp / 2f, this), 0x33FFFFFF, sizeDp / 2f, this));
+        LiquidGlassButton circle = new LiquidGlassButton(this);
+        circle.setTint(circleColor);
+        circle.setStrong(sizeDp >= 60);
         GlyphView icon = new GlyphView(this, glyph);
         icon.setColor(iconColor);
         icon.setStrokeDp(2.1f);
@@ -339,6 +339,14 @@ public class RecordActivity extends ScaledActivity {
         tv.setPadding(0, Ui.dp(this, 4), 0, 0);
         col.addView(tv);
         return col;
+    }
+
+    private void setGlass(View v, int color, boolean strong) {
+        if (v instanceof LiquidGlassButton) {
+            LiquidGlassButton b = (LiquidGlassButton) v;
+            b.setTint(color);
+            b.setStrong(strong);
+        }
     }
 
     private static int lighten(int color, int amount) {
@@ -483,14 +491,14 @@ public class RecordActivity extends ScaledActivity {
         mainIcon.setColor(Color.WHITE);
         mainLabel.setText("结束");
         liveText.setTextColor(Ui.TEXT);
-        mainButton.setBackground(Ui.rippleBg(
-                Ui.gradient(0xFFFF6B70, 0xFFB91C1C, 34, this), 0x44FFFFFF, 34, this));
-        pauseButton.setBackground(Ui.rippleBg(
-                Ui.gradient(0xFF243036, 0xFF1A2429, 23, this), 0x33FFFFFF, 23, this));
-        markButton.setBackground(Ui.rippleBg(
-                Ui.gradient(0xFF243036, 0xFF1A2429, 23, this), 0x33FFFFFF, 23, this));
+
+        pauseIcon.setType(GlyphView.PAUSE);
         pauseIcon.setColor(Ui.TEXT);
+        pauseLabel.setText("暂停");
         markIcon.setColor(Ui.TEXT);
+        setGlass(mainButton, 0xFFB91C1C, true);
+        setGlass(pauseButton, 0xFF243036, false);
+        setGlass(markButton, 0xFF243036, false);
     }
 
     private void applyPausedUi() {
@@ -501,6 +509,7 @@ public class RecordActivity extends ScaledActivity {
         pauseIcon.setType(GlyphView.PLAY);
         pauseIcon.setColor(Ui.ACCENT);
         pauseLabel.setText("继续");
+        setGlass(pauseButton, 0xFF0F766E, false);
         liveText.setTextColor(Ui.MUTED);
         wave.decay();
     }
@@ -512,8 +521,7 @@ public class RecordActivity extends ScaledActivity {
         mainIcon.setType(GlyphView.SPARK);
         mainIcon.setColor(Ui.ACCENT_INK);
         mainLabel.setText("进度");
-        mainButton.setBackground(Ui.rippleBg(
-                Ui.gradient(0xFF5EEAD4, 0xFF14B8A6, 34, this), 0x44FFFFFF, 34, this));
+        setGlass(mainButton, 0xFF14B8A6, true);
         pauseButton.setEnabled(false);
         pauseButton.setAlpha(0.35f);
         markButton.setEnabled(false);
@@ -599,8 +607,7 @@ public class RecordActivity extends ScaledActivity {
                 mainIcon.setType(GlyphView.NOTE);
                 mainIcon.setColor(Ui.ACCENT_INK);
                 mainLabel.setText("查看");
-                mainButton.setBackground(Ui.rippleBg(
-                        Ui.gradient(0xFF5EEAD4, 0xFF14B8A6, 34, this), 0x44FFFFFF, 34, this));
+                setGlass(mainButton, 0xFF14B8A6, true);
                 pauseButton.setEnabled(false);
                 pauseButton.setAlpha(0.35f);
                 markButton.setEnabled(false);

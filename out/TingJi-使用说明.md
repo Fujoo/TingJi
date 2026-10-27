@@ -89,13 +89,13 @@
 APK：
 
 ```text
-out/TingJi-v1.0.4.apk
+out/TingJi-v1.0.5.apk
 ```
 
 安装：
 
 ```bash
-adb install -r out/TingJi-v1.0.4.apk
+adb install -r out/TingJi-v1.0.5.apk
 ```
 
 也可以把手表连电脑，用“安卓手表 ADB 实用工具箱”安装。
@@ -254,8 +254,8 @@ bash build.sh
 输出：
 
 ```text
-build/TingJi-v1.0.4.apk
-out/TingJi-v1.0.4.apk
+build/TingJi-v1.0.5.apk
+out/TingJi-v1.0.5.apk
 ```
 
 当前 APK 使用 debug keystore 签名，适合个人侧载；上架应用商店请换正式签名。
