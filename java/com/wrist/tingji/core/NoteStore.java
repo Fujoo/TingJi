@@ -15,7 +15,7 @@ import java.util.Locale;
 
 public class NoteStore extends SQLiteOpenHelper {
     private static final String DB = "tingji.db";
-    private static final int VERSION = 2;
+    private static final int VERSION = 3;
 
     public NoteStore(Context context) {
         super(context.getApplicationContext(), DB, null, VERSION);
@@ -27,6 +27,7 @@ public class NoteStore extends SQLiteOpenHelper {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "title TEXT NOT NULL," +
                 "kind TEXT NOT NULL DEFAULT '会议'," +
+                "subject TEXT NOT NULL DEFAULT ''," +
                 "status INTEGER NOT NULL DEFAULT 4," +
                 "created_at INTEGER NOT NULL," +
                 "updated_at INTEGER NOT NULL," +
@@ -62,6 +63,9 @@ public class NoteStore extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < 2) {
             db.execSQL("ALTER TABLE notes ADD COLUMN examples TEXT NOT NULL DEFAULT ''");
+        }
+        if (oldVersion < 3) {
+            db.execSQL("ALTER TABLE notes ADD COLUMN subject TEXT NOT NULL DEFAULT ''");
         }
     }
 
@@ -100,9 +104,10 @@ public class NoteStore extends SQLiteOpenHelper {
         String q = query == null ? "" : query.trim();
         if (!q.isEmpty()) {
             sql.append(" AND (title LIKE ? OR transcript LIKE ? OR corrected LIKE ?")
-                    .append(" OR summary LIKE ? OR tags LIKE ? OR key_points LIKE ?)");
+                    .append(" OR summary LIKE ? OR tags LIKE ? OR key_points LIKE ?")
+                    .append(" OR subject LIKE ?)");
             String like = "%" + q + "%";
-            for (int i = 0; i < 6; i++) args.add(like);
+            for (int i = 0; i < 7; i++) args.add(like);
         }
         sql.append(" ORDER BY updated_at DESC LIMIT 300");
         Cursor c = getReadableDatabase().rawQuery(sql.toString(), args.toArray(new String[0]));
@@ -119,6 +124,7 @@ public class NoteStore extends SQLiteOpenHelper {
         n.id = c.getLong(c.getColumnIndexOrThrow("id"));
         n.title = c.getString(c.getColumnIndexOrThrow("title"));
         n.kind = c.getString(c.getColumnIndexOrThrow("kind"));
+        n.subject = c.getString(c.getColumnIndexOrThrow("subject"));
         n.status = c.getInt(c.getColumnIndexOrThrow("status"));
         n.createdAt = c.getLong(c.getColumnIndexOrThrow("created_at"));
         n.updatedAt = c.getLong(c.getColumnIndexOrThrow("updated_at"));
@@ -158,6 +164,13 @@ public class NoteStore extends SQLiteOpenHelper {
         if (kind == null || kind.trim().isEmpty()) return;
         ContentValues v = new ContentValues();
         v.put("kind", kind.trim());
+        v.put("updated_at", System.currentTimeMillis());
+        getWritableDatabase().update("notes", v, "id=?", new String[]{String.valueOf(id)});
+    }
+
+    public synchronized void setSubject(long id, String subject) {
+        ContentValues v = new ContentValues();
+        v.put("subject", subject == null ? "" : subject.trim());
         v.put("updated_at", System.currentTimeMillis());
         getWritableDatabase().update("notes", v, "id=?", new String[]{String.valueOf(id)});
     }
@@ -376,11 +389,13 @@ public class NoteStore extends SQLiteOpenHelper {
     }
 
     public synchronized void applyAI(long noteId, String title, String category,
-                                     String summary, String keyPoints, String examples,
-                                     String actions, String decisions, String tags) {
+                                     String subject, String summary, String keyPoints,
+                                     String examples, String actions, String decisions,
+                                     String tags) {
         ContentValues v = new ContentValues();
         if (title != null && !title.trim().isEmpty()) v.put("title", title.trim());
         if (category != null && !category.trim().isEmpty()) v.put("kind", category.trim());
+        v.put("subject", subject == null ? "" : subject.trim());
         v.put("summary", summary == null ? "" : summary);
         v.put("key_points", keyPoints == null ? "" : keyPoints);
         v.put("examples", examples == null ? "" : examples);
@@ -469,25 +484,67 @@ public class NoteStore extends SQLiteOpenHelper {
         db.update("notes", v, "status IN (0,1,2)", null);
     }
 
+    /** Fill subject for existing class notes without calling the API. */
+    public synchronized void backfillSubjects() {
+        Cursor c = getReadableDatabase().rawQuery(
+                "SELECT id,title,tags,transcript FROM notes " +
+                        "WHERE kind='课堂' AND (subject IS NULL OR subject='')", null);
+        List<Long> ids = new ArrayList<>();
+        List<String> subjects = new ArrayList<>();
+        try {
+            while (c.moveToNext()) {
+                String text = safe(c.getString(1)) + " " + safe(c.getString(2))
+                        + " " + safe(c.getString(3));
+                String subject = NoteAI.guessSubject(text);
+                if (!subject.isEmpty()) {
+                    ids.add(c.getLong(0));
+                    subjects.add(subject);
+                }
+            }
+        } finally {
+            c.close();
+        }
+        if (ids.isEmpty()) return;
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        try {
+            for (int i = 0; i < ids.size(); i++) {
+                ContentValues v = new ContentValues();
+                v.put("subject", subjects.get(i));
+                db.update("notes", v, "id=?", new String[]{String.valueOf(ids.get(i))});
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    private static String safe(String s) {
+        return s == null ? "" : s;
+    }
+
     public synchronized int[] stats() {
-        int total = 0, meetings = 0, classes = 0;
+        int total = 0, meetings = 0, classes = 0, subjects = 0;
         long duration = 0;
         Cursor c = getReadableDatabase().rawQuery(
                 "SELECT COUNT(*), " +
                         "SUM(CASE WHEN kind='会议' THEN 1 ELSE 0 END), " +
                         "SUM(CASE WHEN kind='课堂' THEN 1 ELSE 0 END), " +
-                        "SUM(duration_ms) FROM notes", null);
+                        "SUM(duration_ms), " +
+                        "COUNT(DISTINCT CASE WHEN kind='课堂' AND subject<>'' " +
+                        "THEN subject END) FROM notes", null);
         try {
             if (c.moveToFirst()) {
                 total = c.getInt(0);
                 meetings = c.getInt(1);
                 classes = c.getInt(2);
                 duration = c.getLong(3);
+                subjects = c.getInt(4);
             }
         } finally {
             c.close();
         }
-        return new int[]{total, meetings, classes, (int) (duration / 60000L)};
+        return new int[]{total, meetings, classes, (int) (duration / 60000L), subjects};
     }
 
     public synchronized long latestNoteId() {

@@ -19,6 +19,7 @@ public class NoteAI {
     public static class Result {
         public String title = "";
         public String category = "";
+        public String subject = "";
         public String corrected = "";
         public String summary = "";
         public String keyPoints = "";
@@ -63,6 +64,9 @@ public class NoteAI {
                 note.markers, progress);
         r.title = limit(a.title.isEmpty() ? titleFrom(corrected, story) : a.title, 24);
         r.category = normalizeCategory(a.category, note.kind);
+        if ("课堂".equals(r.category)) {
+            r.subject = normalizeSubject(a.subject, r.title + " " + corrected);
+        }
         r.summary = a.summary;
         r.keyPoints = join(a.keyPoints);
         r.examples = join(a.examples);
@@ -198,6 +202,7 @@ public class NoteAI {
         Analysis a = new Analysis();
         a.title = o.optString("title", "").trim();
         a.category = o.optString("category", "").trim();
+        a.subject = o.optString("subject", "").trim();
         a.summary = o.optString("summary", "").trim();
         if (a.summary.length() > 1200) a.summary = a.summary.substring(0, 1200);
         if (a.summary.isEmpty()) {
@@ -228,6 +233,7 @@ public class NoteAI {
         return "你是擅长整理课堂笔记的助教。只输出一个 JSON 对象，不要 Markdown，不要解释。字段如下：\n" +
                 "title：18字以内，课程主题或本节标题；\n" +
                 "category：只能是 课堂、讲座、会议、访谈、其他 之一；\n" +
+                "subject：学科，只能是 数学、语文、英语、物理、化学、生物、历史、地理、政治、计算机、科学、其他 之一；\n" +
                 "summary：120-180字，概括本节讲了什么、核心方法或结论；\n" +
                 "key_points：字符串数组，3-8条知识点，每条写清定义、公式或关键结论；公式用纯文本；\n" +
                 "examples：字符串数组，0-4条课堂例题或案例，写清题目要点和解法；\n" +
@@ -304,6 +310,50 @@ public class NoteAI {
         return b.toString();
     }
 
+    public static final String[] SUBJECTS = {"数学", "语文", "英语", "物理", "化学",
+            "生物", "历史", "地理", "政治", "计算机", "科学", "其他"};
+
+    public static String guessSubject(String context) {
+        return matchSubject(context == null ? "" : context);
+    }
+
+    public static String normalizeSubject(String value, String context) {
+        String v = value == null ? "" : value.trim();
+        String c = context == null ? "" : context;
+        String hit = matchSubject(v);
+        if (!hit.isEmpty()) return hit;
+        hit = matchSubject(c);
+        return hit.isEmpty() ? "其他" : hit;
+    }
+
+    private static String matchSubject(String text) {
+        if (text == null || text.isEmpty()) return "";
+        String s = text;
+        if (s.contains("数学") || s.contains("函数") || s.contains("方程")
+                || s.contains("几何") || s.contains("概率") || s.contains("微积分")
+                || s.contains("线性代数") || s.contains("导数") || s.contains("统计")) return "数学";
+        if (s.contains("语文") || s.contains("古诗") || s.contains("文言文")
+                || s.contains("作文") || s.contains("阅读理解") || s.contains("修辞")) return "语文";
+        if (s.contains("英语") || s.contains("English") || s.contains("grammar")
+                || s.contains("单词") || s.contains("听力") || s.contains("语法")) return "英语";
+        if (s.contains("物理") || s.contains("力学") || s.contains("电磁")
+                || s.contains("光学") || s.contains("牛顿") || s.contains("电路")) return "物理";
+        if (s.contains("化学") || s.contains("元素") || s.contains("分子")
+                || s.contains("反应") || s.contains("有机") || s.contains("溶液")) return "化学";
+        if (s.contains("生物") || s.contains("细胞") || s.contains("遗传")
+                || s.contains("基因") || s.contains("生态") || s.contains("光合")) return "生物";
+        if (s.contains("历史") || s.contains("朝代") || s.contains("革命")
+                || s.contains("战争") || s.contains("古代") || s.contains("近代")) return "历史";
+        if (s.contains("地理") || s.contains("气候") || s.contains("地形")
+                || s.contains("洋流") || s.contains("板块") || s.contains("经纬")) return "地理";
+        if (s.contains("政治") || s.contains("道德与法治") || s.contains("法律")
+                || s.contains("哲学") || s.contains("经济生活")) return "政治";
+        if (s.contains("计算机") || s.contains("编程") || s.contains("算法")
+                || s.contains("代码") || s.contains("信息技术") || s.contains("数据结构")) return "计算机";
+        if (s.contains("科学") || s.contains("实验")) return "科学";
+        return "";
+    }
+
     public static String normalizeCategory(String value, String fallback) {
         String v = value == null ? "" : value.trim();
         if (v.contains("课堂") || v.contains("课程") || v.contains("讲座")) return "课堂";
@@ -357,6 +407,7 @@ public class NoteAI {
     private static class Analysis {
         String title;
         String category;
+        String subject;
         String summary;
         List<String> keyPoints = new ArrayList<>();
         List<String> examples = new ArrayList<>();

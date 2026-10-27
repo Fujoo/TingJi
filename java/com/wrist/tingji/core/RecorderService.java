@@ -611,8 +611,8 @@ public class RecorderService extends Service {
                     updateNotification(false);
                 });
                 store.setCorrected(noteId, result.corrected);
-                store.applyAI(noteId, result.title, result.category, result.summary,
-                        result.keyPoints, result.examples, result.actions,
+                store.applyAI(noteId, result.title, result.category, result.subject,
+                        result.summary, result.keyPoints, result.examples, result.actions,
                         result.decisions, result.tags);
                 RecorderState.statusText = "整理完成";
             } else {

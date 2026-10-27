@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.wrist.tingji.App;
 import com.wrist.tingji.core.Note;
+import com.wrist.tingji.core.NoteAI;
 import com.wrist.tingji.core.NoteStore;
 import com.wrist.tingji.core.RecorderService;
 import com.wrist.tingji.core.RecorderState;
@@ -288,7 +289,8 @@ public class NoteActivity extends ScaledActivity {
     private String headerSignature = "";
 
     private void updateHeader() {
-        String sig = note.title + "|" + note.kind + "|" + note.createdAt + "|" + note.durationMs
+        String sig = note.title + "|" + note.kind + "|" + note.subject + "|"
+                + note.createdAt + "|" + note.durationMs
                 + "|" + note.status + "|" + note.segmentsDone + "|" + note.segmentsFailed;
         if (sig.equals(headerSignature)) return;
         headerSignature = sig;
@@ -299,6 +301,9 @@ public class NoteActivity extends ScaledActivity {
                 (Ui.kindColor(note.kind) & 0x00FFFFFF) | 0x22000000, 10, this));
         StringBuilder meta = new StringBuilder();
         meta.append(Ui.dateTime(note.createdAt));
+        if ("课堂".equals(note.kind) && note.subject != null && !note.subject.trim().isEmpty()) {
+            meta.append(" · ").append(note.subject.trim());
+        }
         if (note.durationMs > 0) meta.append(" · ").append(Ui.durationShort(note.durationMs));
         if (note.status == Note.READY && note.segmentsDone > 0) {
             meta.append(" · ").append(note.segmentsDone).append(" 段 · 已整理");
@@ -680,7 +685,11 @@ public class NoteActivity extends ScaledActivity {
     private String markdown(Note n) {
         StringBuilder b = new StringBuilder();
         b.append("# ").append(n.title).append("\n\n");
-        b.append("> ").append(n.kind).append(" · ").append(Ui.dateTime(n.createdAt));
+        b.append("> ").append(n.kind);
+        if ("课堂".equals(n.kind) && n.subject != null && !n.subject.trim().isEmpty()) {
+            b.append(" · ").append(n.subject.trim());
+        }
+        b.append(" · ").append(Ui.dateTime(n.createdAt));
         if (n.durationMs > 0) b.append(" · ").append(Ui.durationShort(n.durationMs));
         b.append("\n\n");
         if (!TextUtils.isEmpty(n.summary)) {
@@ -758,11 +767,26 @@ public class NoteActivity extends ScaledActivity {
                 .show();
     }
 
+    private void showSubjectPicker() {
+        if (note == null) return;
+        String[] subjects = NoteAI.SUBJECTS;
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("选择学科")
+                .setItems(subjects, (d, which) -> {
+                    store.setSubject(noteId, subjects[which]);
+                    contentSignature = "";
+                    reload();
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
     private void showMore() {
         if (note == null) return;
         List<String> items = new ArrayList<>();
         items.add("重命名");
         items.add("修改类型");
+        if ("课堂".equals(note.kind)) items.add("修改学科");
         items.add("复制 Markdown");
         items.add("分享");
         if (note.status == Note.DRAFT) items.add("重试转写 / 整理");
@@ -773,6 +797,7 @@ public class NoteActivity extends ScaledActivity {
                     String item = items.get(which);
                     if ("重命名".equals(item)) rename();
                     else if ("修改类型".equals(item)) showKindPicker();
+                    else if ("修改学科".equals(item)) showSubjectPicker();
                     else if ("复制 Markdown".equals(item)) Ui.copy(this, markdown(note), "听记");
                     else if ("分享".equals(item)) shareNote();
                     else if (item.startsWith("重试")) reprocess();

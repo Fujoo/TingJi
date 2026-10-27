@@ -25,7 +25,9 @@ import com.wrist.tingji.core.Settings;
 import com.wrist.tingji.util.GlyphView;
 import com.wrist.tingji.util.Ui;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends ScaledActivity {
     private Settings settings;
@@ -211,7 +213,7 @@ public class MainActivity extends ScaledActivity {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        String[] items = {"全部", "会议", "课堂"};
+        String[] items = {"全部", "会议", "课堂", "学科"};
         for (String item : items) {
             TextView chip = Ui.mediumText(this, item, 10.5f, Ui.MUTED);
             chip.setGravity(Gravity.CENTER);
@@ -312,17 +314,20 @@ public class MainActivity extends ScaledActivity {
         String time = Ui.timeOnly(System.currentTimeMillis());
         if (stats[0] == 0) {
             statsView.setText(time + " · 会议 · 课堂 · AI 整理");
+        } else if (stats.length > 4 && stats[4] > 0) {
+            statsView.setText(time + " · " + stats[0] + " 条 · " + stats[4] + " 门学科");
         } else {
             statsView.setText(time + " · " + stats[0] + " 条记录 · " + stats[3] + " 分钟");
         }
 
         String q = search == null ? "" : search.getText().toString();
-        List<Note> notes = store.listNotes(q, filter);
+        String queryKind = "学科".equals(filter) ? "课堂" : filter;
+        List<Note> notes = store.listNotes(q, queryKind);
         StringBuilder sig = new StringBuilder();
         sig.append(filter).append('|').append(q).append('|');
         for (Note n : notes) {
             sig.append(n.id).append(':').append(n.updatedAt).append(':')
-                    .append(n.status).append(';');
+                    .append(n.status).append(':').append(n.subject).append(';');
         }
         sig.append("api=").append(settings.hasDeepSeekKey());
         if (!force && sig.toString().equals(lastSignature)) {
@@ -357,6 +362,32 @@ public class MainActivity extends ScaledActivity {
             return;
         }
         emptyView.setVisibility(View.GONE);
+        if ("学科".equals(filter)) {
+            Map<String, List<Note>> groups = new LinkedHashMap<>();
+            for (Note n : notes) {
+                String subject = subjectLabel(n);
+                List<Note> group = groups.get(subject);
+                if (group == null) {
+                    group = new java.util.ArrayList<>();
+                    groups.put(subject, group);
+                }
+                group.add(n);
+            }
+            boolean first = true;
+            for (Map.Entry<String, List<Note>> e : groups.entrySet()) {
+                listContainer.addView(buildSubjectHeader(e.getKey(), e.getValue().size(),
+                        first), new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                first = false;
+                for (Note n : e.getValue()) {
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    lp.bottomMargin = Ui.dp(this, 7);
+                    listContainer.addView(buildNoteCard(n), lp);
+                }
+            }
+            return;
+        }
         for (Note n : notes) {
             View card = buildNoteCard(n);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
@@ -364,6 +395,30 @@ public class MainActivity extends ScaledActivity {
             lp.bottomMargin = Ui.dp(this, 7);
             listContainer.addView(card, lp);
         }
+    }
+
+    private String subjectLabel(Note n) {
+        if ("课堂".equals(n.kind) && n.subject != null && !n.subject.trim().isEmpty()) {
+            return n.subject.trim();
+        }
+        return "未分类";
+    }
+
+    private View buildSubjectHeader(String subject, int count, boolean first) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(Ui.dp(this, 4), first ? 0 : Ui.dp(this, 8), Ui.dp(this, 4), Ui.dp(this, 5));
+        View dot = new View(this);
+        dot.setBackground(Ui.round(Ui.ACCENT, 3, this));
+        row.addView(dot, new LinearLayout.LayoutParams(Ui.dp(this, 6), Ui.dp(this, 6)));
+        TextView name = Ui.mediumText(this, subject, 10.5f, Ui.ACCENT);
+        name.setPadding(Ui.dp(this, 6), 0, 0, 0);
+        name.setLetterSpacing(0.05f);
+        row.addView(name);
+        TextView cnt = Ui.text(this, " · " + count + " 条", 8.7f, Ui.DIM);
+        row.addView(cnt);
+        return row;
     }
 
     private View buildSetupBanner() {
@@ -460,7 +515,11 @@ public class MainActivity extends ScaledActivity {
 
     private String metaText(Note n) {
         StringBuilder b = new StringBuilder();
-        b.append(n.kind).append(" · ");
+        b.append(n.kind);
+        if ("课堂".equals(n.kind) && n.subject != null && !n.subject.trim().isEmpty()) {
+            b.append(" · ").append(n.subject.trim());
+        }
+        b.append(" · ");
         if (n.isBusy()) {
             b.append(n.statusLabel()).append(" · ");
         } else if (n.status == Note.READY) {

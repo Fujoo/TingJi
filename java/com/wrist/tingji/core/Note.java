@@ -12,6 +12,7 @@ public class Note {
     public long id;
     public String title = "";
     public String kind = "会议";
+    public String subject = "";
     public int status = DRAFT;
     public long createdAt;
     public long updatedAt;

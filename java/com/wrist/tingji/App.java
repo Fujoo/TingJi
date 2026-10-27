@@ -27,6 +27,7 @@ public class App extends Application {
         settings = new Settings(this);
         store = new NoteStore(this);
         store.recoverInterrupted();
+        IO.execute(store::backfillSubjects);
         RecorderState.serviceRunning = false;
     }
 
