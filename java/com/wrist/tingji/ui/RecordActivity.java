@@ -44,7 +44,7 @@ public class RecordActivity extends ScaledActivity {
 
     private TextView timer;
     private TextView status;
-    private TextView liveText;
+    private LiveTranscriptView liveText;
     private TextView liveCount;
     private TextView online;
     private TextView meetingChip;
@@ -270,7 +270,9 @@ public class RecordActivity extends ScaledActivity {
         head.addView(liveCount);
         card.addView(head);
 
-        liveText = Ui.text(this, "点开始后，每 30–60 秒自动转写一段；\n说完停顿一下，分段会更整齐", 9.6f, Ui.MUTED);
+        liveText = new LiveTranscriptView(this);
+        liveText.setText("点开始后，每 30–60 秒自动转写一段；\n说完停顿一下，分段会更整齐");
+        liveText.setTextColor(Ui.MUTED);
         liveText.setLineSpacing(Ui.dp(this, 2), 1f);
         liveText.setPadding(0, Ui.dp(this, 3), 0, 0);
         liveText.setMaxLines(2);
