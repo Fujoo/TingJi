@@ -11,7 +11,7 @@ public class ScaledActivity extends Activity {
     @Override
     protected void attachBaseContext(Context newBase) {
         try {
-            float scale = new Settings(newBase).getUiScale();
+            float scale = new Settings(newBase).getUiScaleActual();
             if (Math.abs(scale - 1f) < 0.001f) {
                 super.attachBaseContext(newBase);
                 return;

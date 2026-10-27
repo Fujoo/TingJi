@@ -246,10 +246,10 @@ public class SettingsActivity extends ScaledActivity {
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         TextView minus = smallButton("−");
-        minus.setOnClickListener(v -> changeScale(-0.05f));
+        minus.setOnClickListener(v -> changeScale(-0.04f));
         row.addView(minus, new LinearLayout.LayoutParams(Ui.dp(this, 30), Ui.dp(this, 28)));
         TextView plus = smallButton("+");
-        plus.setOnClickListener(v -> changeScale(0.05f));
+        plus.setOnClickListener(v -> changeScale(0.04f));
         LinearLayout.LayoutParams plp = new LinearLayout.LayoutParams(
                 Ui.dp(this, 30), Ui.dp(this, 28));
         plp.leftMargin = Ui.dp(this, 5);
@@ -270,6 +270,13 @@ public class SettingsActivity extends ScaledActivity {
         TextView count = Ui.text(this, "本地 " + stats[0] + " 条记录 · 共 " + stats[3] + " 分钟", 10.2f, Ui.MUTED);
         count.setPadding(0, Ui.dp(this, 2), 0, Ui.dp(this, 7));
         card.addView(count);
+        TextView tutorial = actionButton("重新查看使用教程", false);
+        tutorial.setOnClickListener(v -> startActivity(
+                new Intent(this, TutorialActivity.class).putExtra("replay", true)));
+        LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 35));
+        tlp.topMargin = Ui.dp(this, 8);
+        card.addView(tutorial, tlp);
         TextView clear = actionButton("清空全部记录", false);
         clear.setTextColor(Ui.ERROR);
         clear.setOnClickListener(v -> Ui.confirm(this, "清空全部记录？",
@@ -286,7 +293,7 @@ public class SettingsActivity extends ScaledActivity {
     private View aboutCard() {
         LinearLayout card = card();
         card.setBackground(Ui.roundStroke(Ui.SURFACE, 14, Ui.BORDER_SOFT, 1, this));
-        TextView t = Ui.mediumText(this, "听记 1.0.2", 11.5f, Ui.TEXT);
+        TextView t = Ui.mediumText(this, "听记 1.0.4", 11.5f, Ui.TEXT);
         card.addView(t);
         TextView s = Ui.text(this, "32 位纯 Java · 无原生库 · 适配 Android 6+\n"
                 + "记录、密钥只保存在手表本地。\n"

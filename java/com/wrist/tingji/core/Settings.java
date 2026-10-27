@@ -19,6 +19,7 @@ public class Settings {
     public Settings(Context context) {
         p = context.getSharedPreferences("tingji", Context.MODE_PRIVATE);
         secrets = new SecureStore();
+        migrateScale();
     }
 
     private String s(String key, String def) {
@@ -190,12 +191,31 @@ public class Settings {
         p.edit().putBoolean("haptics", value).apply();
     }
 
-    public static final float MIN_UI_SCALE = 0.75f;
-    public static final float MAX_UI_SCALE = 1.30f;
+    /** 1.25x is the new 100% baseline. Stored values are relative to it. */
+    public static final float UI_BASE_SCALE = 1.25f;
+    public static final float MIN_UI_SCALE = 0.60f;
+    public static final float MAX_UI_SCALE = 1.04f;
 
+    private void migrateScale() {
+        if (p.getBoolean("ui_scale_base_125", false)) return;
+        SharedPreferences.Editor e = p.edit().putBoolean("ui_scale_base_125", true);
+        if (p.contains("ui_scale")) {
+            float old = p.getFloat("ui_scale", 1f);
+            float rel = Math.max(MIN_UI_SCALE, Math.min(MAX_UI_SCALE, old / UI_BASE_SCALE));
+            e.putFloat("ui_scale", Math.round(rel * 100f) / 100f);
+        }
+        e.apply();
+    }
+
+    /** Relative UI scale shown to the user; 1.0 = the old 125%. */
     public float getUiScale() {
         float v = p.getFloat("ui_scale", 1f);
         return Math.max(MIN_UI_SCALE, Math.min(MAX_UI_SCALE, v));
+    }
+
+    /** Actual density multiplier used by the Activity. */
+    public float getUiScaleActual() {
+        return getUiScale() * UI_BASE_SCALE;
     }
 
     public void setUiScale(float value) {
@@ -209,6 +229,14 @@ public class Settings {
 
     public void setScaleConfigured() {
         p.edit().putBoolean("ui_scale_configured", true).apply();
+    }
+
+    public boolean isTutorialShown() {
+        return p.getBoolean("tutorial_shown_v1", false);
+    }
+
+    public void setTutorialShown(boolean value) {
+        p.edit().putBoolean("tutorial_shown_v1", value).apply();
     }
 
     public boolean hasDeepSeekKey() {

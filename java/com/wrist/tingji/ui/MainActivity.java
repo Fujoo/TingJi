@@ -43,6 +43,7 @@ public class MainActivity extends ScaledActivity {
     private String filter = "全部";
     private String lastSignature = "";
     private boolean resumed;
+    private boolean onboardingLaunching;
 
     private final Runnable refreshTask = new Runnable() {
         @Override
@@ -62,6 +63,22 @@ public class MainActivity extends ScaledActivity {
         buildUi();
         refresh(true);
         App.MAIN.postDelayed(refreshTask, 900);
+        App.MAIN.postDelayed(this::maybeOnboarding, 400);
+    }
+
+    private void maybeOnboarding() {
+        if (settings == null || settings.isTutorialShown() || onboardingLaunching) return;
+        if (store.stats()[0] > 0 || settings.hasDeepSeekKey() || settings.hasAsrKey()) {
+            settings.setScaleConfigured();
+            settings.setTutorialShown(true);
+            return;
+        }
+        onboardingLaunching = true;
+        if (!settings.isScaleConfigured()) {
+            startActivity(new Intent(this, ScaleActivity.class));
+        } else {
+            startActivity(new Intent(this, TutorialActivity.class));
+        }
     }
 
     private void fullscreen() {
@@ -144,6 +161,8 @@ public class MainActivity extends ScaledActivity {
         title.setLetterSpacing(0.02f);
         titles.addView(title);
         statsView = Ui.text(this, "会议 · 课堂 · AI 整理", 9.5f, Ui.MUTED);
+        statsView.setSingleLine(true);
+        statsView.setEllipsize(TextUtils.TruncateAt.END);
         statsView.setPadding(0, Ui.dp(this, 1), 0, 0);
         titles.addView(statsView);
         bar.addView(titles, new LinearLayout.LayoutParams(0,
@@ -315,9 +334,9 @@ public class MainActivity extends ScaledActivity {
         if (stats[0] == 0) {
             statsView.setText(time + " · 会议 · 课堂 · AI 整理");
         } else if (stats.length > 4 && stats[4] > 0) {
-            statsView.setText(time + " · " + stats[0] + " 条 · " + stats[4] + " 门学科");
+            statsView.setText(time + " · " + stats[0] + " 条 · " + stats[4] + " 学科");
         } else {
-            statsView.setText(time + " · " + stats[0] + " 条记录 · " + stats[3] + " 分钟");
+            statsView.setText(time + " · " + stats[0] + " 条 · " + stats[3] + " 分");
         }
 
         String q = search == null ? "" : search.getText().toString();
@@ -575,10 +594,12 @@ public class MainActivity extends ScaledActivity {
     protected void onResume() {
         super.onResume();
         resumed = true;
+        onboardingLaunching = false;
         lastSignature = "";
         App.MAIN.removeCallbacks(refreshTask);
         refresh(true);
         App.MAIN.postDelayed(refreshTask, 900);
+        App.MAIN.postDelayed(this::maybeOnboarding, 300);
     }
 
     @Override

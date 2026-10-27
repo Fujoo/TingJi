@@ -118,36 +118,36 @@ public class RecordActivity extends ScaledActivity {
         root.setBackgroundColor(Ui.BG);
         LinearLayout col = new LinearLayout(this);
         col.setOrientation(LinearLayout.VERTICAL);
-        col.setPadding(Ui.dp(this, 14), Ui.dp(this, 5), Ui.dp(this, 14), Ui.dp(this, 4));
+        col.setPadding(Ui.dp(this, 12), Ui.dp(this, 4), Ui.dp(this, 12), Ui.dp(this, 3));
         root.addView(col, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
         col.addView(buildTopBar(), new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 42)));
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 36)));
         col.addView(buildKindRow(), new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 30)));
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 27)));
         Ui.setMargins(col.getChildAt(col.getChildCount() - 1), 0, Ui.dp(this, 3), 0, Ui.dp(this, 1));
 
         LinearLayout timerBox = new LinearLayout(this);
         timerBox.setOrientation(LinearLayout.VERTICAL);
         timerBox.setGravity(Gravity.CENTER_HORIZONTAL);
-        timer = Ui.monoText(this, "00:00", 40f, Ui.TEXT);
+        timer = Ui.monoText(this, "00:00", 33f, Ui.TEXT);
         timer.setLetterSpacing(0.04f);
         timer.setGravity(Gravity.CENTER);
         timerBox.addView(timer);
-        status = Ui.mediumText(this, "准备开始", 9.5f, Ui.MUTED);
+        status = Ui.mediumText(this, "准备开始", 9.2f, Ui.MUTED);
         status.setGravity(Gravity.CENTER);
         status.setPadding(0, Ui.dp(this, 1), 0, 0);
         timerBox.addView(status);
         col.addView(timerBox, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 58)));
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 52)));
 
         wave = new WaveformView(this);
         col.addView(wave, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 42)));
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 28)));
 
         col.addView(buildLiveCard(), new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 68)));
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 54)));
         Ui.setMargins(col.getChildAt(col.getChildCount() - 1), 0, Ui.dp(this, 2), 0, 0);
 
         View spacer = new View(this);
@@ -155,12 +155,12 @@ public class RecordActivity extends ScaledActivity {
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
         col.addView(buildControls(), new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 92)));
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 82)));
 
-        TextView hint = Ui.text(this, "息屏或退出后，录音会在后台继续", 9f, Ui.DIM);
+        TextView hint = Ui.text(this, "息屏或退出后，录音会在后台继续", 8.5f, Ui.DIM);
         hint.setGravity(Gravity.CENTER);
         col.addView(hint, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 16)));
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 10)));
 
         setContentView(root);
     }
@@ -176,11 +176,11 @@ public class RecordActivity extends ScaledActivity {
         GlyphView arrow = new GlyphView(this, GlyphView.BACK);
         arrow.setColor(Ui.TEXT);
         FrameLayout.LayoutParams alp = new FrameLayout.LayoutParams(
-                Ui.dp(this, 18), Ui.dp(this, 18));
+                Ui.dp(this, 19), Ui.dp(this, 19));
         alp.gravity = Gravity.CENTER;
         back.addView(arrow, alp);
         back.setOnClickListener(v -> onBackPressed());
-        bar.addView(back, new LinearLayout.LayoutParams(Ui.dp(this, 36), Ui.dp(this, 36)));
+        bar.addView(back, new LinearLayout.LayoutParams(Ui.dp(this, 34), Ui.dp(this, 34)));
 
         LinearLayout mid = new LinearLayout(this);
         mid.setOrientation(LinearLayout.VERTICAL);
@@ -203,11 +203,11 @@ public class RecordActivity extends ScaledActivity {
         meetingChip = kindChip("会议");
         classChip = kindChip("课堂");
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, Ui.dp(this, 26));
+                ViewGroup.LayoutParams.WRAP_CONTENT, Ui.dp(this, 24));
         lp.rightMargin = Ui.dp(this, 6);
         kindRow.addView(meetingChip, lp);
         kindRow.addView(classChip, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, Ui.dp(this, 26)));
+                ViewGroup.LayoutParams.WRAP_CONTENT, Ui.dp(this, 24)));
         meetingChip.setOnClickListener(v -> {
             if (!started) {
                 kind = "会议";
@@ -226,7 +226,7 @@ public class RecordActivity extends ScaledActivity {
     private TextView kindChip(String text) {
         TextView v = Ui.mediumText(this, text, 10.5f, Ui.MUTED);
         v.setGravity(Gravity.CENTER);
-        v.setPadding(Ui.dp(this, 16), 0, Ui.dp(this, 16), 0);
+        v.setPadding(Ui.dp(this, 14), 0, Ui.dp(this, 14), 0);
         v.setBackground(Ui.rippleBg(Ui.round(Ui.SURFACE2, 13, this),
                 0x22FFFFFF, 13, this));
         return v;
@@ -257,22 +257,22 @@ public class RecordActivity extends ScaledActivity {
     private View buildLiveCard() {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(Ui.dp(this, 11), Ui.dp(this, 8), Ui.dp(this, 11), Ui.dp(this, 7));
+        card.setPadding(Ui.dp(this, 10), Ui.dp(this, 7), Ui.dp(this, 10), Ui.dp(this, 6));
         card.setBackground(Ui.roundStroke(Ui.SURFACE, 14, Ui.BORDER_SOFT, 1, this));
 
         LinearLayout head = new LinearLayout(this);
         head.setOrientation(LinearLayout.HORIZONTAL);
         head.setGravity(Gravity.CENTER_VERTICAL);
-        TextView label = Ui.mediumText(this, "实时转写", 9.2f, Ui.ACCENT);
+        TextView label = Ui.mediumText(this, "实时转写", 9.0f, Ui.ACCENT);
         head.addView(label, new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         liveCount = Ui.text(this, "0 段", 8.8f, Ui.DIM);
         head.addView(liveCount);
         card.addView(head);
 
-        liveText = Ui.text(this, "点开始后，每 30–60 秒自动转写一段；\n说完停顿一下，分段会更整齐", 10.3f, Ui.MUTED);
+        liveText = Ui.text(this, "点开始后，每 30–60 秒自动转写一段；\n说完停顿一下，分段会更整齐", 9.6f, Ui.MUTED);
         liveText.setLineSpacing(Ui.dp(this, 2), 1f);
-        liveText.setPadding(0, Ui.dp(this, 4), 0, 0);
+        liveText.setPadding(0, Ui.dp(this, 3), 0, 0);
         liveText.setMaxLines(2);
         liveText.setEllipsize(TextUtils.TruncateAt.END);
         card.addView(liveText);
@@ -284,32 +284,32 @@ public class RecordActivity extends ScaledActivity {
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER);
 
-        LinearLayout pauseCol = controlColumn(46, GlyphView.PAUSE, "暂停", Ui.SURFACE2, Ui.MUTED);
+        LinearLayout pauseCol = controlColumn(48, GlyphView.PAUSE, "暂停", Ui.SURFACE2, Ui.MUTED);
         pauseButton = pauseCol.getChildAt(0);
         pauseIcon = (GlyphView) ((FrameLayout) pauseButton).getChildAt(0);
         pauseLabel = (TextView) pauseCol.getChildAt(1);
         pauseButton.setOnClickListener(v -> togglePause());
-        row.addView(pauseCol, new LinearLayout.LayoutParams(Ui.dp(this, 58), Ui.dp(this, 86)));
+        row.addView(pauseCol, new LinearLayout.LayoutParams(Ui.dp(this, 52), Ui.dp(this, 76)));
 
         View spacer1 = new View(this);
-        row.addView(spacer1, new LinearLayout.LayoutParams(Ui.dp(this, 12), 1));
+        row.addView(spacer1, new LinearLayout.LayoutParams(Ui.dp(this, 8), 1));
 
-        LinearLayout mainCol = controlColumn(68, GlyphView.MIC, "开始", 0xFF14B8A6, Ui.ACCENT_INK);
+        LinearLayout mainCol = controlColumn(64, GlyphView.MIC, "开始", 0xFF14B8A6, Ui.ACCENT_INK);
         mainButton = mainCol.getChildAt(0);
         mainIcon = (GlyphView) ((FrameLayout) mainButton).getChildAt(0);
         mainLabel = (TextView) mainCol.getChildAt(1);
         mainButton.setOnClickListener(v -> onMainPressed());
-        row.addView(mainCol, new LinearLayout.LayoutParams(Ui.dp(this, 82), Ui.dp(this, 94)));
+        row.addView(mainCol, new LinearLayout.LayoutParams(Ui.dp(this, 74), Ui.dp(this, 82)));
 
         View spacer2 = new View(this);
-        row.addView(spacer2, new LinearLayout.LayoutParams(Ui.dp(this, 12), 1));
+        row.addView(spacer2, new LinearLayout.LayoutParams(Ui.dp(this, 8), 1));
 
-        LinearLayout markCol = controlColumn(46, GlyphView.MARK, "标记", Ui.SURFACE2, Ui.MUTED);
+        LinearLayout markCol = controlColumn(48, GlyphView.MARK, "标记", Ui.SURFACE2, Ui.MUTED);
         markButton = markCol.getChildAt(0);
         markIcon = (GlyphView) ((FrameLayout) markButton).getChildAt(0);
         markLabel = (TextView) markCol.getChildAt(1);
         markButton.setOnClickListener(v -> addMark());
-        row.addView(markCol, new LinearLayout.LayoutParams(Ui.dp(this, 58), Ui.dp(this, 86)));
+        row.addView(markCol, new LinearLayout.LayoutParams(Ui.dp(this, 52), Ui.dp(this, 76)));
         return row;
     }
 
@@ -324,17 +324,17 @@ public class RecordActivity extends ScaledActivity {
                 circleColor, sizeDp / 2f, this), 0x33FFFFFF, sizeDp / 2f, this));
         GlyphView icon = new GlyphView(this, glyph);
         icon.setColor(iconColor);
-        icon.setStrokeDp(2.0f);
+        icon.setStrokeDp(2.1f);
         FrameLayout.LayoutParams ilp = new FrameLayout.LayoutParams(
-                Ui.dp(this, sizeDp * 0.36f), Ui.dp(this, sizeDp * 0.36f));
+                Ui.dp(this, sizeDp * 0.46f), Ui.dp(this, sizeDp * 0.46f));
         ilp.gravity = Gravity.CENTER;
         circle.addView(icon, ilp);
         col.addView(circle, new LinearLayout.LayoutParams(
                 Ui.dp(this, sizeDp), Ui.dp(this, sizeDp)));
 
-        TextView tv = Ui.mediumText(this, label, 9.2f, Ui.MUTED);
+        TextView tv = Ui.mediumText(this, label, 9.5f, Ui.MUTED);
         tv.setGravity(Gravity.CENTER);
-        tv.setPadding(0, Ui.dp(this, 5), 0, 0);
+        tv.setPadding(0, Ui.dp(this, 4), 0, 0);
         col.addView(tv);
         return col;
     }
